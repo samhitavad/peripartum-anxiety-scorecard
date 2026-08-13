@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peripartum Anxiety Risk Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF7F1;
+    --paper-raised:#F2EDE2;
+    --ink:#232323;
+    --ink-soft:#5b5648;
+    --indigo:#22345F;
+    --indigo-deep:#182548;
+    --gold:#C8963E;
+    --line:#DDD5C2;
+    --band-low:#6B8F71;
+    --band-mod:#C8963E;
+    --band-elev:#C1732E;
+    --band-high:#A63D40;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:32px 20px 80px;}
+
+  header{margin-bottom:28px;}
+  h1{
+    font-family:'Lora', serif;
+    
+    font-weight:500;
+    font-size:clamp(28px,5.5vw,38px);
+    line-height:1.12;
+    margin:0 0 12px;
+    color:var(--indigo-deep);
+  }
+  .lede{
+    color:var(--ink-soft);
+    font-size:15.5px;
+    max-width:54ch;
+  }
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 20px 18px;
+    margin-bottom:14px;
+  }
+  .q-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:.06em;
+    margin-bottom:6px;
+  }
+  .q-text{
+    font-family:'Lora', serif;
+    font-weight:500;
+    font-size:18px;
+    line-height:1.35;
+    color:var(--indigo-deep);
+    margin:0 0 14px;
+  }
+  .options{display:flex;flex-direction:column;gap:8px;}
+  .opt{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt:hover{border-color:var(--indigo);}
+  .opt.selected{
+    border-color:var(--indigo);
+    background:#EEF1F8;
+  }
+  .opt input{accent-color:var(--indigo); margin-top:3px; flex-shrink:0;}
+  .opt-label{font-size:14.5px;}
+  .opt-pts{
+    margin-left:auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    flex-shrink:0;
+    padding-left:8px;
+  }
+
+  .btn{
+    width:100%;
+    background:var(--gold);
+    color:#2A1E05;
+    border:none;
+    border-radius:10px;
+    padding:16px;
+    margin-top:10px;
+    font-family:'Inter', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:filter .15s ease;
+  }
+  .btn:hover{filter:brightness(1.06);}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* Result panel */
+  .result{
+    display:none;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 22px;
+    margin-top:20px;
+  }
+  .result.show{display:block; animation:rise .35s ease;}
+  @keyframes rise{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .band-tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.04em;
+    padding:6px 12px;
+    border-radius:20px;
+    color:#fff;
+    margin-bottom:14px;
+  }
+  .result h2{
+    font-family:'Lora', serif;
+    font-weight:500;
+    font-size:24px;
+    margin:0 0 10px;
+    color:var(--indigo-deep);
+  }
+  .result p{font-size:14.5px; color:var(--ink-soft); margin:0 0 14px;}
+  .meter{
+    height:10px;
+    background:var(--paper-raised);
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .meter-fill{height:100%; border-radius:6px; transition:width .5s ease;}
+  .meter-labels{
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+    margin-bottom:20px;
+  }
+  .stat-row{
+    display:flex;
+    gap:14px;
+    padding:14px 0;
+    border-top:1px solid var(--line);
+  }
+  .stat{flex:1;}
+  .stat-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    font-weight:600;
+    color:var(--indigo-deep);
+  }
+  .stat-label{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+
+  .action-note{
+    background:var(--paper-raised);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:14px;
+    margin-top:14px;
+  }
+  .action-note strong{color:var(--indigo-deep);}
+
+  footer{
+    margin-top:36px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  footer p{margin:0 0 8px;}
+  .reset-link{
+    background:none;border:none;color:var(--indigo);
+    text-decoration:underline;cursor:pointer;font-size:13px;padding:0;
+    font-family:'Inter', sans-serif;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .result.show, .meter-fill{animation:none; transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Peripartum Anxiety<br>Risk Scorecard</h1>
+    <p class="lede">Five-item screening tool for pregnant mothers in rural India's caregiving communities. A demonstrative tool derived from a case study project.</p>
+  </header>
+
+  <form id="scoreForm">
+
+    <div class="card" data-q="trauma">
+      <div class="q-num">01 / TRAUMA</div>
+      <p class="q-text">During her pregnancy, did the mother experience any form of emotional or physical trauma? <em>(Select all that apply)</em></p>
+      <div class="options">
+        <label class="opt" data-group="trauma" data-excl="1"><input type="checkbox" name="trauma_none" value="none"><span class="opt-label">No.</span><span class="opt-pts">+0</span></label>
+        <label class="opt" data-group="trauma"><input type="checkbox" name="trauma_physical" value="physical"><span class="opt-label">Yes, physical trauma</span><span class="opt-pts">+8</span></label>
+        <label class="opt" data-group="trauma"><input type="checkbox" name="trauma_emotional" value="emotional"><span class="opt-label">Yes, emotional trauma</span><span class="opt-pts">+8</span></label>
+      </div>
+    </div>
+
+    <div class="card" data-q="intox">
+      <div class="q-num">02 / FATHER'S HISTORY</div>
+      <p class="q-text">Does the father have a history of drinking, smoking, or other recreational intoxicants? <em>(Check all that apply)</em></p>
+      <div class="options">
+        <label class="opt" data-group="intox" data-excl="1"><input type="checkbox" name="intox_none" value="none"><span class="opt-label">No history</span><span class="opt-pts">+0</span></label>
+        <label class="opt" data-group="intox"><input type="checkbox" name="intox_drink" value="drink"><span class="opt-label">Yes, drinking history</span><span class="opt-pts">+4</span></label>
+        <label class="opt" data-group="intox"><input type="checkbox" name="intox_smoke" value="smoke"><span class="opt-label">Yes, smoking history</span><span class="opt-pts">+4</span></label>
+        <label class="opt" data-group="intox"><input type="checkbox" name="intox_other" value="other"><span class="opt-label">Yes, other recreational intoxicants</span><span class="opt-pts">+4</span></label>
+      </div>
+    </div>
+
+    <div class="card" data-q="consang">
+      <div class="q-num">03 / CONSANGUINITY</div>
+      <p class="q-text">Is the father, in any way, related to the mother? <em>(Consanguinity)</em></p>
+      <div class="options">
+        <label class="opt"><input type="radio" name="consang" value="0"><span class="opt-label">No</span><span class="opt-pts">+0</span></label>
+        <label class="opt"><input type="radio" name="consang" value="1"><span class="opt-label">Yes</span><span class="opt-pts">+4</span></label>
+      </div>
+    </div>
+
+    <div class="card" data-q="infection">
+      <div class="q-num">04 / INFECTION</div>
+      <p class="q-text">During her pregnancy, did the mother experience a viral or bacterial infection?</p>
+      <div class="options">
+        <label class="opt"><input type="radio" name="infection" value="0"><span class="opt-label">No</span><span class="opt-pts">+0</span></label>
+        <label class="opt"><input type="radio" name="infection" value="1"><span class="opt-label">Yes</span><span class="opt-pts">+6</span></label>
+      </div>
+    </div>
+
+    <div class="card" data-q="gc">
+      <div class="q-num">05 / GENETIC COUNSELING</div>
+      <p class="q-text">Has the parent ever heard of or experienced genetic counseling before?</p>
+      <div class="options">
+        <label class="opt"><input type="radio" name="gc" value="0"><span class="opt-label">The parent does not know what genetic counseling is</span><span class="opt-pts">+0</span></label>
+        <label class="opt"><input type="radio" name="gc" value="1"><span class="opt-label">The parent knows what genetic counseling is, but has not gone through it before</span><span class="opt-pts">−3</span></label>
+        <label class="opt"><input type="radio" name="gc" value="2"><span class="opt-label">Yes, the parent has done genetic counseling</span><span class="opt-pts">−6</span></label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" id="submitBtn" disabled>Answer all 5 questions to see risk band</button>
+  </form>
+
+  <div class="result" id="result">
+    <span class="band-tag" id="bandTag">—</span>
+    <h2 id="bandHeadline">—</h2>
+    <p id="bandBody">—</p>
+    <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+    <div class="meter-labels"><span>−6</span><span>0</span><span>4</span><span>8</span><span>30</span></div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num" id="statScore">0</div>
+        <div class="stat-label">Total points</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statRate">—</div>
+        <div class="stat-label">Observed anxiety rate<br>in this score band*</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statN">—</div>
+        <div class="stat-label">Households in this<br>band, in the case study</div>
+      </div>
+    </div>
+    <div class="action-note" id="actionNote"></div>
+    <button type="button" class="reset-link" onclick="location.reload()">Score another household</button>
+  </div>
+
+  <footer>
+    <p>*Observed prevalence of peripartum anxiety among households in this score band, from a 416-household case study of caregiving families in rural Puducherry and Tamil Nadu (Vadapalli, Clinton Fellowship for Service). This scoring rule was derived from, and validated within, a population of mothers whose children were later identified as having a disability; its accuracy has not yet been independently tested with pregnant mothers more generally. It is offered here for pilot use, not as a validated clinical or diagnostic instrument.</p>
+    <p>Intended for use with mothers who are currently pregnant or have recently given birth, at antenatal or early-postnatal contact.</p>
+  </footer>
+
+</div>
+
+<script>
+const BANDS = [
+  {min:-6, max:0,  key:'low',  name:'Lower risk',    color:'var(--band-low)',  rate:'37.2%', n:148,
+   body:'Households scoring in this range reported peripartum anxiety at close to the lowest rate observed in the case study sample.',
+   action:'Routine follow-up is appropriate. No specific referral is indicated based on this screen alone.'},
+  {min:1, max:4,   key:'mod',  name:'Moderate risk', color:'var(--band-mod)',  rate:'52.1%', n:94,
+   body:'Households scoring in this range reported peripartum anxiety at roughly the sample average.',
+   action:'Consider a follow-up conversation with the mother directly, and note which items contributed to the score.'},
+  {min:5, max:8,   key:'elev', name:'Elevated risk',  color:'var(--band-elev)', rate:'77.8%', n:90,
+   body:'Households scoring in this range reported peripartum anxiety at a substantially higher rate than the sample average.',
+   action:'A closer follow-up is recommended. Route based on which items are driving the score — see note below.'},
+  {min:9, max:30,  key:'high', name:'High risk',      color:'var(--band-high)', rate:'82.1%', n:84,
+   body:'Households scoring in this range reported peripartum anxiety at the highest rate observed in the case study sample.',
+   action:'Prioritize this household for direct follow-up. Route based on which items are driving the score — see note below.'}
+];
+
+const form = document.getElementById('scoreForm');
+const submitBtn = document.getElementById('submitBtn');
+
+// Mutual exclusion: checking a "None" option clears the others in its group,
+// and checking any other option in the group clears "None" -- matches how
+// the original survey's checkbox questions were coded (a "No." option
+// alongside the affirmative choices).
+document.querySelectorAll('.opt[data-group]').forEach(opt=>{
+  const input = opt.querySelector('input');
+  input.addEventListener('change', ()=>{
+    const group = opt.dataset.group;
+    const isNone = opt.dataset.excl === '1';
+    const groupOpts = document.querySelectorAll(`.opt[data-group="${group}"]`);
+    if(isNone && input.checked){
+      groupOpts.forEach(o=>{ if(o !== opt) o.querySelector('input').checked = false; });
+    } else if(!isNone && input.checked){
+      groupOpts.forEach(o=>{ if(o.dataset.excl==='1') o.querySelector('input').checked = false; });
+    }
+    updateButtonState();
+  });
+});
+
+function groupScore(names, capAt){
+  // counts checked boxes among `names`, each worth one unit, capped at `capAt`
+  const checked = names.filter(n => form.querySelector(`input[name="${n}"]`).checked);
+  return Math.min(checked.length, capAt);
+}
+
+function currentScore(){
+  const traumaUnits = groupScore(['trauma_physical','trauma_emotional'], 2);
+  const intoxUnits = groupScore(['intox_drink','intox_smoke','intox_other'], 2);
+  const traumaNoneChecked = form.querySelector('input[name="trauma_none"]').checked;
+  const intoxNoneChecked = form.querySelector('input[name="intox_none"]').checked;
+  const consangChecked = form.querySelector('input[name="consang"]:checked');
+  const infectionChecked = form.querySelector('input[name="infection"]:checked');
+  const gcChecked = form.querySelector('input[name="gc"]:checked');
+
+  return {
+    trauma: {units: traumaUnits, answered: traumaNoneChecked || traumaUnits>0, pts: traumaUnits*8},
+    intox:  {units: intoxUnits, answered: intoxNoneChecked || intoxUnits>0, pts: intoxUnits*4},
+    consang:{val: consangChecked ? parseInt(consangChecked.value) : null, answered: !!consangChecked, pts: consangChecked ? parseInt(consangChecked.value)*4 : 0},
+    infection:{val: infectionChecked ? parseInt(infectionChecked.value) : null, answered: !!infectionChecked, pts: infectionChecked ? parseInt(infectionChecked.value)*6 : 0},
+    gc:{val: gcChecked ? parseInt(gcChecked.value) : null, answered: !!gcChecked, pts: gcChecked ? parseInt(gcChecked.value)*-3 : 0}
+  };
+}
+
+function updateButtonState(){
+  const s = currentScore();
+  const answeredCount = [s.trauma, s.intox, s.consang, s.infection, s.gc].filter(x=>x.answered).length;
+
+  document.querySelectorAll('.opt').forEach(opt=>{
+    const input = opt.querySelector('input');
+    opt.classList.toggle('selected', input.checked);
+  });
+
+  if(answeredCount === 5){
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'See risk band';
+  } else {
+    submitBtn.disabled = true;
+    submitBtn.textContent = `Answer all 5 questions to see risk band (${answeredCount}/5)`;
+  }
+}
+
+form.addEventListener('change', updateButtonState);
+updateButtonState();
+
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  const s = currentScore();
+  const total = s.trauma.pts + s.intox.pts + s.consang.pts + s.infection.pts + s.gc.pts;
+  const band = BANDS.find(b => total >= b.min && total <= b.max) || BANDS[BANDS.length-1];
+
+  document.getElementById('bandTag').textContent = band.name.toUpperCase();
+  document.getElementById('bandTag').style.background = band.color;
+  document.getElementById('bandHeadline').textContent = `Score: ${total} — ${band.name}`;
+  document.getElementById('bandBody').textContent = band.body;
+  document.getElementById('statScore').textContent = total;
+  document.getElementById('statRate').textContent = band.rate;
+  document.getElementById('statN').textContent = band.n;
+
+  const pct = Math.max(0, Math.min(100, ((total - (-6)) / (30 - (-6))) * 100));
+  const fill = document.getElementById('meterFill');
+  fill.style.width = pct + '%';
+  fill.style.background = band.color;
+
+  let noteParts = [];
+  if(s.trauma.units>0 || s.intox.units>0){
+    noteParts.push('trauma or paternal intoxication history point toward direct emotional or social support for the mother');
+  }
+  if(s.consang.val===1 || s.gc.val<2){
+    noteParts.push('consanguinity or limited genetic-counselling access point toward a referral to genetic-counselling services');
+  }
+  const note = noteParts.length
+    ? `<strong>Which response, not just the score:</strong> This household's score reflects ${noteParts.join('; and ')}. These call for different kinds of follow-up — see Section 4.3 of the accompanying paper.`
+    : `<strong>Which response, not just the score:</strong> Review the running score list above to see which specific items are contributing before deciding on a follow-up approach.`;
+  document.getElementById('actionNote').innerHTML = note;
+
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});
+});
+</script>
+</body>
+</html>
