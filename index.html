@@ -36,6 +36,7 @@
   header{margin-bottom:28px;}
   h1{
     font-family:'Lora', serif;
+    
     font-weight:500;
     font-size:clamp(28px,5.5vw,38px);
     line-height:1.12;
@@ -166,7 +167,6 @@
     gap:14px;
     padding:14px 0;
     border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
   }
   .stat{flex:1;}
   .stat-num{
@@ -177,8 +177,7 @@
   }
   .stat-label{font-size:12px; color:var(--ink-soft); margin-top:2px;}
 
-  /* Breakdown of contributing items */
-  .breakdown-section{padding:18px 0; border-bottom:1px solid var(--line);}
+  .breakdown-section{padding:18px 0; border-top:1px solid var(--line);}
   .breakdown-heading{
     font-family:'Lora', serif;
     font-weight:500;
@@ -198,8 +197,7 @@
   .breakdown-row .pos{color:var(--band-high); font-family:'IBM Plex Mono', monospace; font-weight:600;}
   .breakdown-row .neg{color:var(--band-low); font-family:'IBM Plex Mono', monospace; font-weight:600;}
 
-  /* Support pathways */
-  .pathway-section{padding-top:18px;}
+  .pathway-section{padding-top:6px; border-top:1px solid var(--line); margin-top:4px;}
   .pathway-card{
     background:var(--paper-raised);
     border-radius:10px;
@@ -216,6 +214,15 @@
   }
   .pathway-card p{margin:0; font-size:13.5px; color:var(--ink-soft);}
 
+  .action-note{
+    background:var(--paper-raised);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:14px;
+    margin-top:14px;
+  }
+  .action-note strong{color:var(--indigo-deep);}
+
   footer{
     margin-top:36px;
     padding-top:20px;
@@ -228,7 +235,6 @@
     background:none;border:none;color:var(--indigo);
     text-decoration:underline;cursor:pointer;font-size:13px;padding:0;
     font-family:'Inter', sans-serif;
-    margin-top:16px;
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -303,7 +309,7 @@
     <h2 id="bandHeadline">—</h2>
     <p id="bandBody">—</p>
     <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
-    <div class="meter-labels"><span>−6</span><span>0</span><span>13</span><span>34</span></div>
+    <div class="meter-labels"><span>−6</span><span>0</span><span>4</span><span>13</span><span>34</span></div>
     <div class="stat-row">
       <div class="stat">
         <div class="stat-num" id="statScore">0</div>
@@ -318,17 +324,14 @@
         <div class="stat-label">Households in this<br>band, in the case study</div>
       </div>
     </div>
-
     <div class="breakdown-section">
-      <h3 class="breakdown-heading">What's contributing to this score</h3>
+      <h3 class="breakdown-heading">Major Contributing Factor(s)</h3>
       <div id="scoreBreakdown"></div>
     </div>
-
     <div class="pathway-section">
-      <h3 class="breakdown-heading">Suggested support pathway(s)</h3>
+      <h3 class="breakdown-heading">Recommended Support Pathway(s)</h3>
       <div id="pathwayList"></div>
     </div>
-
     <button type="button" class="reset-link" onclick="location.reload()">Score another household</button>
   </div>
 
@@ -342,38 +345,26 @@
 <script>
 const BANDS = [
   {min:-6, max:0,  key:'low',  name:'Lower risk',    color:'var(--band-low)',  rate:'37.2%', n:148,
-   body:'Households scoring in this range reported peripartum anxiety at close to the lowest rate observed in the case study sample.'},
+   body:'Households scoring in this range reported peripartum anxiety at close to the lowest rate observed in the case study sample.',
+   action:'Routine follow-up is appropriate. No specific referral is indicated based on this screen alone.'},
   {min:1, max:4,   key:'mod',  name:'Moderate risk', color:'var(--band-mod)',  rate:'52.1%', n:94,
-   body:'Households scoring in this range reported peripartum anxiety at roughly the sample average.'},
+   body:'Households scoring in this range reported peripartum anxiety at roughly the sample average.',
+   action:'Consider a follow-up conversation with the mother directly, and note which items contributed to the score.'},
   {min:5, max:13,  key:'elev', name:'Elevated risk',  color:'var(--band-elev)', rate:'77.3%', n:132,
-   body:'Households scoring in this range reported peripartum anxiety at a substantially higher rate than the sample average.'},
+   body:'Households scoring in this range reported peripartum anxiety at a substantially higher rate than the sample average.',
+   action:'A closer follow-up is recommended. Route based on which items are driving the score — see note below.'},
   {min:14, max:34, key:'high', name:'Very high risk', color:'var(--band-high)', rate:'88.1%', n:42,
-   body:'Households scoring in this range reported peripartum anxiety at the highest rate observed in the case study sample.'}
+   body:'Households scoring in this range reported peripartum anxiety at the highest rate observed in the case study sample.',
+   action:'Prioritize this household for direct follow-up. Route based on which items are driving the score — see note below.'}
 ];
-
-const PATHWAYS = {
-  emotional: {
-    label: "Emotional & Social Support",
-    detail: "Direct support for the mother — counseling, peer support groups, or referral to existing mental-health services.",
-    triggers: (s) => s.trauma.units > 0 || s.intox.units > 0
-  },
-  genetic: {
-    label: "Genetic Counselling Referral",
-    detail: "Connect the family with genetic-counselling services — a distinct need from emotional support.",
-    triggers: (s) => s.consang.val === 1 || s.gc.val < 2
-  },
-  maternalHealth: {
-    label: "Maternal Health Follow-Up",
-    detail: "Clinical follow-up related to infection during pregnancy, separate from the mental-health pathways above.",
-    triggers: (s) => s.infection.val === 1
-  }
-};
 
 const form = document.getElementById('scoreForm');
 const submitBtn = document.getElementById('submitBtn');
 
 // Mutual exclusion: checking a "None" option clears the others in its group,
-// and checking any other option in the group clears "None".
+// and checking any other option in the group clears "None" -- matches how
+// the original survey's checkbox questions were coded (a "No." option
+// alongside the affirmative choices).
 document.querySelectorAll('.opt[data-group]').forEach(opt=>{
   const input = opt.querySelector('input');
   input.addEventListener('change', ()=>{
@@ -390,6 +381,7 @@ document.querySelectorAll('.opt[data-group]').forEach(opt=>{
 });
 
 function groupScore(names, capAt){
+  // counts checked boxes among `names`, each worth one unit, capped at `capAt`
   const checked = names.filter(n => form.querySelector(`input[name="${n}"]`).checked);
   return Math.min(checked.length, capAt);
 }
@@ -452,28 +444,37 @@ form.addEventListener('submit', function(e){
   fill.style.width = pct + '%';
   fill.style.background = band.color;
 
-  // Breakdown of contributing items
+  // Major Contributing Factor(s) -- plain list, no prose
   const breakdown = [];
   if (s.trauma.units > 0) breakdown.push([`Trauma (${s.trauma.units} type${s.trauma.units>1?'s':''})`, s.trauma.pts]);
   if (s.intox.units > 0) breakdown.push([`Father's intoxication history (${s.intox.units})`, s.intox.pts]);
   if (s.consang.val === 1) breakdown.push(['Consanguineous marriage', s.consang.pts]);
   if (s.infection.val === 1) breakdown.push(['Infection during pregnancy', s.infection.pts]);
   if (s.gc.val === 1) breakdown.push(['Genetic counseling: aware, not undergone', s.gc.pts]);
-  if (s.gc.val === 2) breakdown.push(['Genetic counseling: completed', s.gc.pts]);
+  if (s.gc.val === 2) breakdown.push(['Genetic counseling: completed (protective)', s.gc.pts]);
 
   const breakdownHTML = breakdown.length
     ? breakdown.map(([label, pts]) =>
         `<div class="breakdown-row"><span>${label}</span><span class="${pts>0?'pos':'neg'}">${pts>0?'+':''}${pts}</span></div>`
       ).join('')
-    : '<div class="breakdown-row"><span>No contributing risk items</span><span>—</span></div>';
+    : '<div class="breakdown-row"><span>No contributing risk items identified</span><span>—</span></div>';
   document.getElementById('scoreBreakdown').innerHTML = breakdownHTML;
 
-  // Support pathways triggered by this household's specific answers
-  const activePathways = Object.values(PATHWAYS).filter(p => p.triggers(s));
-  const pathwaysHTML = activePathways.length
-    ? activePathways.map(p => `<div class="pathway-card"><strong>${p.label}</strong><p>${p.detail}</p></div>`).join('')
-    : '<div class="pathway-card"><strong>No specific pathway indicated</strong><p>Routine follow-up is appropriate.</p></div>';
-  document.getElementById('pathwayList').innerHTML = pathwaysHTML;
+  // Recommended Support Pathway(s) -- one card per triggered pathway, independent of each other
+  const pathways = [];
+  if (s.trauma.units > 0 || s.intox.units > 0) {
+    pathways.push(['Emotional & Social Support', 'Direct support for the mother — counseling, peer support groups, or referral to existing mental-health services.']);
+  }
+  if (s.consang.val === 1 || s.gc.val < 2) {
+    pathways.push(['Genetic Counselling Referral', 'Connect the family with genetic-counselling services.']);
+  }
+  if (s.infection.val === 1) {
+    pathways.push(['Maternal Health Follow-Up', 'Clinical follow-up related to infection during pregnancy.']);
+  }
+  const pathwayHTML = pathways.length
+    ? pathways.map(([label, detail]) => `<div class="pathway-card"><strong>${label}</strong><p>${detail}</p></div>`).join('')
+    : '<div class="pathway-card"><strong>Routine Follow-Up</strong><p>No specific pathway indicated by this household\'s responses.</p></div>';
+  document.getElementById('pathwayList').innerHTML = pathwayHTML;
 
   document.getElementById('result').classList.add('show');
   document.getElementById('result').scrollIntoView({behavior:'smooth', block:'start'});
