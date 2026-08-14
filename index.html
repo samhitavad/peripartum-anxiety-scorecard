@@ -272,7 +272,7 @@
     <h2 id="bandHeadline">—</h2>
     <p id="bandBody">—</p>
     <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
-    <div class="meter-labels"><span>−6</span><span>0</span><span>4</span><span>8</span><span>30</span></div>
+    <div class="meter-labels"><span>−6</span><span>0</span><span>4</span><span>13</span><span>34</span></div>
     <div class="stat-row">
       <div class="stat">
         <div class="stat-num" id="statScore">0</div>
@@ -306,10 +306,10 @@ const BANDS = [
   {min:1, max:4,   key:'mod',  name:'Moderate risk', color:'var(--band-mod)',  rate:'52.1%', n:94,
    body:'Households scoring in this range reported peripartum anxiety at roughly the sample average.',
    action:'Consider a follow-up conversation with the mother directly, and note which items contributed to the score.'},
-  {min:5, max:8,   key:'elev', name:'Elevated risk',  color:'var(--band-elev)', rate:'77.8%', n:90,
+  {min:5, max:13,  key:'elev', name:'Elevated risk',  color:'var(--band-elev)', rate:'77.3%', n:132,
    body:'Households scoring in this range reported peripartum anxiety at a substantially higher rate than the sample average.',
    action:'A closer follow-up is recommended. Route based on which items are driving the score — see note below.'},
-  {min:9, max:30,  key:'high', name:'High risk',      color:'var(--band-high)', rate:'82.1%', n:84,
+  {min:14, max:34, key:'high', name:'Very high risk', color:'var(--band-high)', rate:'88.1%', n:42,
    body:'Households scoring in this range reported peripartum anxiety at the highest rate observed in the case study sample.',
    action:'Prioritize this household for direct follow-up. Route based on which items are driving the score — see note below.'}
 ];
@@ -395,7 +395,7 @@ form.addEventListener('submit', function(e){
   document.getElementById('statRate').textContent = band.rate;
   document.getElementById('statN').textContent = band.n;
 
-  const pct = Math.max(0, Math.min(100, ((total - (-6)) / (30 - (-6))) * 100));
+  const pct = Math.max(0, Math.min(100, ((total - (-6)) / (34 - (-6))) * 100));
   const fill = document.getElementById('meterFill');
   fill.style.width = pct + '%';
   fill.style.background = band.color;
