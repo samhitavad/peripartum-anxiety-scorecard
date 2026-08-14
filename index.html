@@ -465,7 +465,7 @@ form.addEventListener('submit', function(e){
   if (s.trauma.units > 0 || s.intox.units > 0) {
     pathways.push(['Emotional & Social Support', 'Direct support for the mother — counseling, peer support groups, or referral to existing mental-health services.']);
   }
-  if (s.consang.val === 1 || s.gc.val < 2) {
+  if (s.consang.val === 1 || s.gc.val === 0) {
     pathways.push(['Genetic Counselling Referral', 'Connect the family with genetic-counselling services.']);
   }
   if (s.infection.val === 1) {
